@@ -9,6 +9,7 @@ const DOT_DENSITY = 1;
 
 const SPHERE_RADIUS = 30;
 const LATITUDE_COUNT = 80;
+const animationSpeed = 0.5;
 
 const MASK_IMAGE = "./assets/map.png";
 
@@ -90,7 +91,7 @@ imageLoader.load(MASK_IMAGE, (image) => {
 
       // Set the vector using the spherical coordinates generated from the sphere radius, phi and theta.
       vector.setFromSphericalCoords(SPHERE_RADIUS, phi, theta);
-      innerVector.setFromSphericalCoords(SPHERE_RADIUS - 15, phi, theta);
+      innerVector.setFromSphericalCoords(SPHERE_RADIUS, phi, theta);
 
       // Make sure the dot is facing in the right direction.
       dotGeometry.lookAt(vector);
@@ -112,19 +113,40 @@ imageLoader.load(MASK_IMAGE, (image) => {
       // Push the positioned geometry into the array.
       if (samplePixel[3]) {
         dotGeometries.push(dotGeometry);
+        innerSphere.push(innerDotGeometry);
       } else {
         waterGeometries.push(dotGeometry);
       }
-      innerSphere.push(innerDotGeometry);
     }
   }
 
+  // Vertex Shader
+  const vertexShader = `
+    varying vec2 vUv;
+    uniform float time;
+
+    void main() {
+      vUv = uv;
+      vec3 displacedPosition = position + normalize(position) * 0.1 * sin(time);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(displacedPosition, 1.0);
+    }
+    `;
+
+  // Fragment Shader
+  const fragmentShader = `
+    varying vec2 vUv;
+
+    void main() {
+      gl_FragColor = vec4(0, 0, 1.0, 1.0);
+    }
+    `;
+
   const mergedDotGeometrics =
     BufferGeometryUtils.mergeGeometries(dotGeometries);
-  
+
   const mergedWaterGeometrics =
     BufferGeometryUtils.mergeGeometries(waterGeometries);
-  
+
   const innerMergedDotGeometrics =
     BufferGeometryUtils.mergeGeometries(innerSphere);
 
@@ -137,14 +159,19 @@ imageLoader.load(MASK_IMAGE, (image) => {
     side: THREE.DoubleSide,
   });
 
-  const dotMaterial2 = new THREE.MeshBasicMaterial({
-    color: DOT_COLOR2,
+  const innerDotMaterial = new THREE.ShaderMaterial({
+    // color: DOT_COLOR2,
+    uniforms: {
+      time: { value: 0.0 },
+    },
+    vertexShader,
+    fragmentShader,
     side: THREE.DoubleSide,
   });
 
   const dotMesh = new THREE.Mesh(mergedDotGeometrics, dotMaterial);
   const waterMesh = new THREE.Mesh(mergedWaterGeometrics, waterMaterial);
-  const innerDotMesh = new THREE.Mesh(innerMergedDotGeometrics, dotMaterial2);
+  // const innerDotMesh = new THREE.Mesh(innerMergedDotGeometrics, innerDotMaterial);
 
   scene.add(dotMesh);
   // scene.add(waterMesh);
@@ -159,8 +186,11 @@ imageLoader.load(MASK_IMAGE, (image) => {
     // Update the dot mesh rotation.
     // dotMesh.rotation.order = ''
     dotMesh.rotation.y = time * 0.1;
-    waterMesh.rotation.y = dotMesh.rotation.y;
-    //   innerDotMesh.rotation.y = time * - 0.2;
+    // waterMesh.rotation.y = dotMesh.rotation.y;
+    // innerDotMesh.rotation.y = time * 0.1;
+    // innerDotMaterial.uniforms.time.value = time;
+
+    // innerDotMesh.scale.setScalar(Math.random() * 0.3 + 1);
 
     renderer.render(scene, camera);
   }
