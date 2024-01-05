@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import * as BufferGeometryUtils from "three/addons/utils/BufferGeometryUtils.js";
 
-const DOT_SIZE = 0.09;
+const DOT_SIZE = 0.2;
 const DOT_COLOR = 0xffffff;
 const WATER_COLOR = 0x416bdf;
 const DOT_COLOR2 = 0xfff000;
-const DOT_DENSITY = 1;
+const DOT_DENSITY = 0.8;
 
 const SPHERE_RADIUS = 30;
 const LATITUDE_COUNT = 80;
@@ -84,22 +84,22 @@ imageLoader.load(MASK_IMAGE, (image) => {
     // Loop across the dot count for the latitude line.
     for (let dot = 0; dot < latitudeDotCount; dot += 1) {
       const dotGeometry = new THREE.CircleGeometry(DOT_SIZE, 5);
-      const innerDotGeometry = new THREE.CircleGeometry(DOT_SIZE, 5);
+      // const innerDotGeometry = new THREE.CircleGeometry(DOT_SIZE, 5);
       // Calculate the phi and theta angles for the dot.
       const phi = (Math.PI / LATITUDE_COUNT) * lat;
       const theta = ((2 * Math.PI) / latitudeDotCount) * dot;
 
       // Set the vector using the spherical coordinates generated from the sphere radius, phi and theta.
       vector.setFromSphericalCoords(SPHERE_RADIUS, phi, theta);
-      innerVector.setFromSphericalCoords(SPHERE_RADIUS, phi, theta);
+      // innerVector.setFromSphericalCoords(SPHERE_RADIUS, phi, theta);
 
       // Make sure the dot is facing in the right direction.
       dotGeometry.lookAt(vector);
-      innerDotGeometry.lookAt(vector);
+      // innerDotGeometry.lookAt(vector);
 
       // Move the dot geometry into position.
       dotGeometry.translate(vector.x, vector.y, vector.z);
-      innerDotGeometry.translate(innerVector.x, innerVector.y, innerVector.z);
+      // innerDotGeometry.translate(innerVector.x, innerVector.y, innerVector.z);
 
       dotGeometry.computeBoundingSphere();
 
@@ -113,7 +113,7 @@ imageLoader.load(MASK_IMAGE, (image) => {
       // Push the positioned geometry into the array.
       if (samplePixel[3]) {
         dotGeometries.push(dotGeometry);
-        innerSphere.push(innerDotGeometry);
+        // innerSphere.push(innerDotGeometry);
       } else {
         waterGeometries.push(dotGeometry);
       }
@@ -121,25 +121,25 @@ imageLoader.load(MASK_IMAGE, (image) => {
   }
 
   // Vertex Shader
-  const vertexShader = `
-    varying vec2 vUv;
-    uniform float time;
+  // const vertexShader = `
+  //   varying vec2 vUv;
+  //   uniform float time;
 
-    void main() {
-      vUv = uv;
-      vec3 displacedPosition = position + normalize(position) * 0.1 * sin(time);
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(displacedPosition, 1.0);
-    }
-    `;
+  //   void main() {
+  //     vUv = uv;
+  //     vec3 displacedPosition = position + normalize(position) * 0.1 * sin(time);
+  //     gl_Position = projectionMatrix * modelViewMatrix * vec4(displacedPosition, 1.0);
+  //   }
+  //   `;
 
-  // Fragment Shader
-  const fragmentShader = `
-    varying vec2 vUv;
+  // // Fragment Shader
+  // const fragmentShader = `
+  //   varying vec2 vUv;
 
-    void main() {
-      gl_FragColor = vec4(0, 0, 1.0, 1.0);
-    }
-    `;
+  //   void main() {
+  //     gl_FragColor = vec4(0, 0, 1.0, 1.0);
+  //   }
+  //   `;
 
   const mergedDotGeometrics =
     BufferGeometryUtils.mergeGeometries(dotGeometries);
@@ -147,8 +147,8 @@ imageLoader.load(MASK_IMAGE, (image) => {
   const mergedWaterGeometrics =
     BufferGeometryUtils.mergeGeometries(waterGeometries);
 
-  const innerMergedDotGeometrics =
-    BufferGeometryUtils.mergeGeometries(innerSphere);
+  // const innerMergedDotGeometrics =
+  //   BufferGeometryUtils.mergeGeometries(innerSphere);
 
   const dotMaterial = new THREE.MeshBasicMaterial({
     color: DOT_COLOR,
@@ -159,15 +159,15 @@ imageLoader.load(MASK_IMAGE, (image) => {
     side: THREE.DoubleSide,
   });
 
-  const innerDotMaterial = new THREE.ShaderMaterial({
-    // color: DOT_COLOR2,
-    uniforms: {
-      time: { value: 0.0 },
-    },
-    vertexShader,
-    fragmentShader,
-    side: THREE.DoubleSide,
-  });
+  // const innerDotMaterial = new THREE.ShaderMaterial({
+  //   // color: DOT_COLOR2,
+  //   uniforms: {
+  //     time: { value: 0.0 },
+  //   },
+  //   vertexShader,
+  //   fragmentShader,
+  //   side: THREE.DoubleSide,
+  // });
 
   const dotMesh = new THREE.Mesh(mergedDotGeometrics, dotMaterial);
   const waterMesh = new THREE.Mesh(mergedWaterGeometrics, waterMaterial);
