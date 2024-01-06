@@ -17,7 +17,7 @@ const WATER_COLOR = 0x416bdf;
 const DOT_COLOR2 = 0xfff000;
 const DOT_DENSITY = 0.8;
 
-const SPHERE_RADIUS = 30;
+const SPHERE_RADIUS = 35;
 const LATITUDE_COUNT = 80;
 
 let today = new Date();
