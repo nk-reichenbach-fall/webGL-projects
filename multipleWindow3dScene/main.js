@@ -15,10 +15,10 @@ const DOT_SIZE = 0.2;
 const DOT_COLOR = 0xffffff;
 const WATER_COLOR = 0x416bdf;
 const DOT_COLOR2 = 0xfff000;
-const DOT_DENSITY = 0.8;
+const DOT_DENSITY = 0.03;
 
-const SPHERE_RADIUS = 35;
-const LATITUDE_COUNT = 80;
+const SPHERE_RADIUS = 100;
+const LATITUDE_COUNT = 30;
 
 let today = new Date();
 today.setHours(0);
@@ -138,7 +138,8 @@ if (new URLSearchParams(window.location.search).get("clear")) {
         // Calculate the radius of the latitude line.
         const radius =
           Math.cos((-90 + (180 / LATITUDE_COUNT) * lat) * (Math.PI / 180)) *
-          SPHERE_RADIUS;
+            SPHERE_RADIUS +
+          i * 20;
         // Calculate the circumference of the latitude line.
         const latitudeCircumference = radius * Math.PI * 2 * 2;
         // Calculate the number of dots required for the latitude line.
@@ -153,7 +154,7 @@ if (new URLSearchParams(window.location.search).get("clear")) {
           const theta = ((2 * Math.PI) / latitudeDotCount) * dot;
 
           // Set the vector using the spherical coordinates generated from the sphere radius, phi and theta.
-          vector.setFromSphericalCoords(SPHERE_RADIUS, phi, theta);
+          vector.setFromSphericalCoords(SPHERE_RADIUS + i * 20, phi, theta);
           // innerVector.setFromSphericalCoords(SPHERE_RADIUS, phi, theta);
 
           // Make sure the dot is facing in the right direction.
@@ -186,7 +187,7 @@ if (new URLSearchParams(window.location.search).get("clear")) {
         BufferGeometryUtils.mergeGeometries(dotGeometries);
 
       const dotMaterial = new t.MeshBasicMaterial({
-        color: DOT_COLOR,
+        color: c,
         side: t.DoubleSide,
         wireframe: true,
       });
@@ -194,13 +195,13 @@ if (new URLSearchParams(window.location.search).get("clear")) {
       const dotMesh = new t.Mesh(mergedDotGeometrics, dotMaterial);
 
       //   let particleWorld =
-    //   let cube = new t.Mesh(
-    //     new t.BoxGeometry(s, s, s),
-    //     // mergedDotGeometrics,
-    //     new t.MeshBasicMaterial({ color: c, wireframe: true })
-    //   );
-    //   cube.position.x = win.shape.x + win.shape.w * 0.5;
-    //   cube.position.y = win.shape.y + win.shape.h * 0.5;
+      //   let cube = new t.Mesh(
+      //     new t.BoxGeometry(s, s, s),
+      //     // mergedDotGeometrics,
+      //     new t.MeshBasicMaterial({ color: c, wireframe: true })
+      //   );
+      dotMesh.position.x = win.shape.x + win.shape.w * 0.5;
+      dotMesh.position.y = win.shape.y + win.shape.h * 0.5;
 
       //   world.add(cube);
       world.add(dotMesh);
@@ -248,7 +249,7 @@ if (new URLSearchParams(window.location.search).get("clear")) {
         cube.position.x + (posTarget.x - cube.position.x) * falloff;
       cube.position.y =
         cube.position.y + (posTarget.y - cube.position.y) * falloff;
-      cube.rotation.x = _t * 0.5;
+
       cube.rotation.y = _t * 0.3;
     }
 
