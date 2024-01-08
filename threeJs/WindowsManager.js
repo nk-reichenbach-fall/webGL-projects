@@ -1,8 +1,12 @@
 let windows = [];
 
-function createWindowObject() {
-
+function createWindowObject(reRender) {
   // Remove one element from windows, in the event of reload or close
+  window.addEventListener("storage", () => {
+    console.log("rerender");
+    reRender();
+  });
+
   window.addEventListener("beforeunload", () => {
     const existingWindows = getWindowsFromStorage();
     if (existingWindows.length) {
@@ -10,8 +14,9 @@ function createWindowObject() {
       windows = existingWindows;
       updateLocalStorage();
     }
+    reRender();
   });
-  
+
   windows = JSON.parse(localStorage.getItem("windows")) || [];
   let count = localStorage.getItem("count") || 0;
 
@@ -35,7 +40,7 @@ function getShape() {
 }
 
 function getWindows() {
-  return windows;
+  return JSON.parse(localStorage.getItem("windows")) || [];
 }
 
 function updateLocalStorage() {

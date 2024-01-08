@@ -16,6 +16,8 @@ const MASK_IMAGE = "./assets/map.png";
 
 let scene, camera, renderer, imageLoader, world;
 let worlds = [];
+let sceneOffsetTarget = { x: 0, y: 0 };
+let sceneOffset = { x: 0, y: 0 };
 
 function init() {
   setTimeout(() => {
@@ -44,7 +46,7 @@ function setUpScene() {
   document.body.appendChild(renderer.domElement);
 
   imageLoader = new THREE.ImageLoader();
-  WindowsManager.createWindowObject();
+  WindowsManager.createWindowObject(reRender);
 }
 
 // Utility function to convert a dot on a sphere into a UV point on a
@@ -149,27 +151,56 @@ function loadImage(sphereRadius) {
 
 function renderWorlds() {
   const windows = WindowsManager.getWindows();
-  console.log(windows);
 
   worlds.forEach((w) => {
     world.remove(w);
   });
+  worlds = [];
 
   for (let i = 0; i < windows.length; i++) {
-    loadImage(SPHERE_RADIUS + i * 10);
+    loadImage(SPHERE_RADIUS + i * 5);
   }
 }
 
+function reRender() {
+  renderWorlds();
+}
+
 function animate(time) {
-  requestAnimationFrame(animate);
+  let falloff = 0.05;
+  sceneOffset.x =
+    sceneOffset.x + (sceneOffsetTarget.x - sceneOffset.x) * falloff;
+  sceneOffset.y =
+    sceneOffset.y + (sceneOffsetTarget.y - sceneOffset.y) * falloff;
+
+  // set the world position to the offset
+  world.position.x = sceneOffset.x;
+  world.position.y = sceneOffset.y;
 
   // Reduce the current timestamp to something manageable.
   time *= 0.001;
 
-  // dotMesh.rotation.y = time * 0.1;
-  worlds.forEach((w) => (w.rotation.y = time * 0.1));
+  let wins = WindowsManager.getWindows();
+
+  worlds.forEach((w, i) => {
+    let cube = worlds[i];
+    let win = wins[i];
+
+    let posTarget = {
+      x: win.winShape.x + win.winShape.w * 0.5,
+      y: win.winShape.y + win.winShape.h * 0.5,
+    };
+
+    // cube.position.x =
+    //   cube.position.x + (posTarget.x - cube.position.x) * falloff;
+    // cube.position.y =
+    //   cube.position.y + (posTarget.y - cube.position.y) * falloff;
+
+    w.rotation.y = time * 0.1;
+  });
 
   renderer.render(scene, camera);
+  requestAnimationFrame(animate);
 }
 
 init();
