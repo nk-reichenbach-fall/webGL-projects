@@ -14,11 +14,15 @@ const animationSpeed = 0.5;
 
 const MASK_IMAGE = "./assets/map.png";
 
-let scene, camera, renderer, imageLoader;
+let scene, camera, renderer, imageLoader, world;
+let worlds = [];
 
 function init() {
-  setUpScene();
-  loadImage();
+  setTimeout(() => {
+    setUpScene();
+    renderWorlds();
+    animate();
+  }, 500);
 }
 
 function setUpScene() {
@@ -32,7 +36,15 @@ function setUpScene() {
   );
   camera.position.set(0, 0, 320);
 
+  world = new THREE.Object3D();
+  scene.add(world);
+
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
   imageLoader = new THREE.ImageLoader();
+  WindowsManager.createWindowObject();
 }
 
 // Utility function to convert a dot on a sphere into a UV point on a
@@ -61,11 +73,8 @@ const sampleImage = (imageData, uv) => {
   return imageData.data.slice(point, point + 4);
 };
 
-function loadImage() {
+function loadImage(sphereRadius) {
   imageLoader.load(MASK_IMAGE, (image) => {
-    WindowsManager.createWindowObject();
-    console.log(WindowsManager.getWindows());
-
     const tempCanvas = document.createElement("canvas");
     tempCanvas.width = image.width;
     tempCanvas.height = image.height;
@@ -73,10 +82,6 @@ function loadImage() {
     const ctx = tempCanvas.getContext("2d");
     ctx.drawImage(image, 0, 0);
     const imageData = ctx.getImageData(0, 0, image.width, image.height);
-
-    renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
 
     const dotGeometries = [];
 
@@ -87,7 +92,7 @@ function loadImage() {
       // Calculate the radius of the latitude line.
       const radius =
         Math.cos((-90 + (180 / LATITUDE_COUNT) * lat) * (Math.PI / 180)) *
-        SPHERE_RADIUS;
+        sphereRadius;
       // Calculate the circumference of the latitude line.
       const latitudeCircumference = radius * Math.PI * 2 * 2;
       // Calculate the number of dots required for the latitude line.
@@ -102,7 +107,7 @@ function loadImage() {
         const theta = ((2 * Math.PI) / latitudeDotCount) * dot;
 
         // Set the vector using the spherical coordinates generated from the sphere radius, phi and theta.
-        vector.setFromSphericalCoords(SPHERE_RADIUS, phi, theta);
+        vector.setFromSphericalCoords(sphereRadius, phi, theta);
 
         // Make sure the dot is facing in the right direction.
         dotGeometry.lookAt(vector);
@@ -122,80 +127,49 @@ function loadImage() {
         // Push the positioned geometry into the array.
         if (samplePixel[3]) {
           dotGeometries.push(dotGeometry);
-          // innerSphere.push(innerDotGeometry);
         }
       }
     }
 
-    // Vertex Shader
-    // const vertexShader = `
-    //   varying vec2 vUv;
-    //   uniform float time;
-
-    //   void main() {
-    //     vUv = uv;
-    //     vec3 displacedPosition = position + normalize(position) * 0.1 * sin(time);
-    //     gl_Position = projectionMatrix * modelViewMatrix * vec4(displacedPosition, 1.0);
-    //   }
-    //   `;
-
-    // // Fragment Shader
-    // const fragmentShader = `
-    //   varying vec2 vUv;
-
-    //   void main() {
-    //     gl_FragColor = vec4(0, 0, 1.0, 1.0);
-    //   }
-    //   `;
-
     const mergedDotGeometrics =
       BufferGeometryUtils.mergeGeometries(dotGeometries);
-
-    // const innerMergedDotGeometrics =
-    //   BufferGeometryUtils.mergeGeometries(innerSphere);
 
     const dotMaterial = new THREE.MeshBasicMaterial({
       color: DOT_COLOR,
       side: THREE.DoubleSide,
     });
 
-    // const innerDotMaterial = new THREE.ShaderMaterial({
-    //   // color: DOT_COLOR2,
-    //   uniforms: {
-    //     time: { value: 0.0 },
-    //   },
-    //   vertexShader,
-    //   fragmentShader,
-    //   side: THREE.DoubleSide,
-    // });
-
     const dotMesh = new THREE.Mesh(mergedDotGeometrics, dotMaterial);
-    // const innerDotMesh = new THREE.Mesh(innerMergedDotGeometrics, innerDotMaterial);
 
-    scene.add(dotMesh);
-    // scene.add(waterMesh);
-    // scene.add(innerDotMesh);
-
-    function animate(time) {
-      requestAnimationFrame(animate);
-
-      // Reduce the current timestamp to something manageable.
-      time *= 0.001;
-
-      // Update the dot mesh rotation.
-      // dotMesh.rotation.order = ''
-      dotMesh.rotation.y = time * 0.1;
-      // waterMesh.rotation.y = dotMesh.rotation.y;
-      // innerDotMesh.rotation.y = time * 0.1;
-      // innerDotMaterial.uniforms.time.value = time;
-
-      // innerDotMesh.scale.setScalar(Math.random() * 0.3 + 1);
-
-      renderer.render(scene, camera);
-    }
-
-    animate();
+    // scene.add(dotMesh);
+    world.add(dotMesh);
+    worlds.push(dotMesh);
   });
+}
+
+function renderWorlds() {
+  const windows = WindowsManager.getWindows();
+  console.log(windows);
+
+  worlds.forEach((w) => {
+    world.remove(w);
+  });
+
+  for (let i = 0; i < windows.length; i++) {
+    loadImage(SPHERE_RADIUS + i * 10);
+  }
+}
+
+function animate(time) {
+  requestAnimationFrame(animate);
+
+  // Reduce the current timestamp to something manageable.
+  time *= 0.001;
+
+  // dotMesh.rotation.y = time * 0.1;
+  worlds.forEach((w) => (w.rotation.y = time * 0.1));
+
+  renderer.render(scene, camera);
 }
 
 init();
