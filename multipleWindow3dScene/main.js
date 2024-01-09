@@ -126,6 +126,7 @@ if (new URLSearchParams(window.location.search).get("clear")) {
     // add new cubes based on the current window setup
     for (let i = 0; i < wins.length; i++) {
       let win = wins[i];
+      console.log(win);
 
       let c = new t.Color();
       c.setHSL(i * 0.1, 1.0, 0.5);

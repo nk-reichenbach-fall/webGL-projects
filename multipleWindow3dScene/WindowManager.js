@@ -56,7 +56,8 @@ class WindowManager {
 
     this.#id = this.#count;
     let shape = this.getWinShape();
-    this.#winData = { id: this.#id, shape: shape, metaData: metaData };
+    this.#winData = { id: this.#id, shape, metaData: metaData };
+    console.log(this.#winData);
     this.#windows.push(this.#winData);
 
     localStorage.setItem("count", this.#count);
