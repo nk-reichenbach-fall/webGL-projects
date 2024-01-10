@@ -2,15 +2,16 @@ import * as THREE from "three";
 import * as BufferGeometryUtils from "three/addons/utils/BufferGeometryUtils.js";
 import WindowsManager from "./WindowsManager";
 
-const DOT_SIZE = 0.2;
+const DOT_SIZE = 1;
 const DOT_COLOR = 0xffffff;
 const WATER_COLOR = 0x416bdf;
 const DOT_COLOR2 = 0xfff000;
-const DOT_DENSITY = 0.8;
+const DOT_DENSITY = 0.2;
 
-const SPHERE_RADIUS = 20;
-const LATITUDE_COUNT = 80;
+const SPHERE_RADIUS = 150;
+const LATITUDE_COUNT = 200;
 const animationSpeed = 0.5;
+let pixR = window.devicePixelRatio ? window.devicePixelRatio : 1;
 
 const MASK_IMAGE = "./assets/map.png";
 
@@ -23,6 +24,8 @@ function init() {
   setTimeout(() => {
     setUpScene();
     renderWorlds();
+    resize();
+    updateWindowShape(false);
     animate();
   }, 500);
 }
@@ -30,19 +33,24 @@ function init() {
 function setUpScene() {
   scene = new THREE.Scene();
 
-  camera = new THREE.PerspectiveCamera(
-    20,
-    window.innerWidth / window.innerHeight,
-    100,
-    500
+  camera = new THREE.OrthographicCamera(
+    0,
+    0,
+    window.innerWidth,
+    window.innerHeight,
+    -10000,
+    10000
   );
-  camera.position.set(0, 0, 320);
+
+  // camera.position.z = 250;
 
   world = new THREE.Object3D();
   scene.add(world);
 
   renderer = new THREE.WebGLRenderer();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(pixR);
+
+  renderer.domElement.setAttribute("id", "scene");
   document.body.appendChild(renderer.domElement);
 
   imageLoader = new THREE.ImageLoader();
@@ -158,7 +166,7 @@ function renderWorlds() {
   worlds = [];
 
   for (let i = 0; i < windows.length; i++) {
-    loadImage(SPHERE_RADIUS + i * 5);
+    loadImage(SPHERE_RADIUS + i * 15);
   }
 }
 
@@ -166,7 +174,15 @@ function reRender() {
   renderWorlds();
 }
 
+function updateWindowShape(easing = true) {
+  // storing the actual offset in a proxy that we update against in the render function
+  sceneOffsetTarget = { x: -window.screenX, y: -window.screenY };
+  if (!easing) sceneOffset = sceneOffsetTarget;
+}
+
 function animate(time) {
+  // console.log(sceneOffsetTarget);
+
   let falloff = 0.05;
   sceneOffset.x =
     sceneOffset.x + (sceneOffsetTarget.x - sceneOffset.x) * falloff;
@@ -184,6 +200,7 @@ function animate(time) {
 
   worlds.forEach((w, i) => {
     let cube = worlds[i];
+    // console.log(cube.position.x);
     let win = wins[i];
 
     let posTarget = {
@@ -191,16 +208,25 @@ function animate(time) {
       y: win.winShape.y + win.winShape.h * 0.5,
     };
 
-    // cube.position.x =
-    //   cube.position.x + (posTarget.x - cube.position.x) * falloff;
-    // cube.position.y =
-    //   cube.position.y + (posTarget.y - cube.position.y) * falloff;
+    cube.position.x =
+      cube.position.x + (posTarget.x - cube.position.x) * falloff;
+    cube.position.y =
+      cube.position.y + (posTarget.y - cube.position.y) * falloff;
 
     w.rotation.y = time * 0.1;
   });
 
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
+}
+
+function resize() {
+  let width = window.innerWidth;
+  let height = window.innerHeight;
+
+  camera = new THREE.OrthographicCamera(0, width, height, 0, -10000, 10000);
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height);
 }
 
 init();
