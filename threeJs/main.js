@@ -96,6 +96,7 @@ function loadImage(sphereRadius) {
     const dotGeometries = [];
 
     const vector = new THREE.Vector3();
+    const win = WindowsManager.getShape();
 
     // Loop across the latitudes.
     for (let lat = 0; lat < LATITUDE_COUNT; lat += 1) {
@@ -147,9 +148,13 @@ function loadImage(sphereRadius) {
     const dotMaterial = new THREE.MeshBasicMaterial({
       color: DOT_COLOR,
       side: THREE.DoubleSide,
+      wireframe: true,
     });
 
     const dotMesh = new THREE.Mesh(mergedDotGeometrics, dotMaterial);
+
+    dotMesh.position.x = win.x + win.w * 0.5;
+    dotMesh.position.y = win.y + win.h * 0.5;
 
     // scene.add(dotMesh);
     world.add(dotMesh);
@@ -182,6 +187,7 @@ function updateWindowShape(easing = true) {
 
 function animate(time) {
   // console.log(sceneOffsetTarget);
+  WindowsManager.updateWindowChange(updateWindowShape);
 
   let falloff = 0.05;
   sceneOffset.x =
