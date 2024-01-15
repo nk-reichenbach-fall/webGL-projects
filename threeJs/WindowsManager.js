@@ -54,8 +54,6 @@ function updateWindowChange(updateWindowShape) {
   ) {
     winData.winShape = winShapes;
     updateWindowShape();
-    console.log(id);
-    console.log(windows);
     getWindowsById(id).winShape = winShapes;
     updateLocalStorage();
   }
