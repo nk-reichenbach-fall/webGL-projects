@@ -203,6 +203,7 @@ function animate(time) {
   time *= 0.001;
 
   let wins = WindowsManager.getWindows();
+  console.log(wins, worlds);
 
   worlds.forEach((w, i) => {
     let cube = worlds[i];
