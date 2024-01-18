@@ -53,8 +53,8 @@ function updateWindowChange(updateWindowShape) {
     winShapes.h !== winData.winShape.h
   ) {
     winData.winShape = winShapes;
-    updateWindowShape();
     getWindowsById(id).winShape = winShapes;
+    updateWindowShape();
     updateLocalStorage();
   }
 }

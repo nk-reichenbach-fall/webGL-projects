@@ -207,7 +207,6 @@ function animate(time) {
 
   worlds.forEach((w, i) => {
     let cube = worlds[i];
-    // console.log(cube.position.x);
     let win = wins[i];
 
     let posTarget = {
