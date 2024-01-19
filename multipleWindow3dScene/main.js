@@ -27,7 +27,6 @@ today.setSeconds(0);
 today.setMilliseconds(0);
 today = today.getTime();
 
-let internalTime = getTime();
 let windowManager;
 let initialized = false;
 
