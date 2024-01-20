@@ -3,12 +3,17 @@ let winData = {};
 let id;
 
 function createWindowObject(reRender) {
-  // Remove one element from windows, in the event of reload or close
-  window.addEventListener("storage", (event) => {
-    let newWindows = JSON.parse(event.newValue);
-    let win
-    let winChange = console.log(event.newValue);
-    reRender();
+  addEventListener("storage", (event) => {
+    if (event.key === "windows") {
+      let newWindows = JSON.parse(event.newValue);
+      let winChange = didWindowsChange(windows, newWindows);
+
+      windows = newWindows;
+
+      if (winChange) {
+        reRender();
+      }
+    }
   });
 
   window.addEventListener("beforeunload", () => {
